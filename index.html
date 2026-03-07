@@ -51,6 +51,11 @@
 <script type="text/babel">
 const { useState, useMemo, useEffect, useRef, useCallback } = React;
 
+// GitHub Pages iframe 정책상 window.confirm/alert 차단됨 → ConfirmModal로 대체
+// 혹시 남은 confirm 호출을 위해 fallback으로 true 반환
+const _origConfirm = window.confirm;
+window.confirm = function(msg) { try { return _origConfirm.call(window, msg); } catch(e) { return true; } };
+
 // ── LOGO (base64 embedded) ──
 const LOGO = "data:image/png;base64,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";
 
@@ -384,11 +389,30 @@ function App() {
     const setters={members:setMembersState,fees:setFeesState,feeYears:setFeeYearsState,yearLabels:setYearLabelsState,transactions:setTransactionsState,meetings:setMeetingsState,projects:setProjectsState,recoveryTarget:setRecoveryTargetState};
     const unsubs=keys.map(k=>subscribeFirestore(k,d=>{
       skipSave.current=true;
-      setters[k](d);
+      if(k==="members"){
+        try{
+          const savedPhotos=JSON.parse(localStorage.getItem("memberPhotos")||"{}");
+          const withPhotos=(d||[]).map(m=>savedPhotos[m.id]?{...m,photoUrl:savedPhotos[m.id]}:m);
+          setMembersState(withPhotos);
+        }catch(e){setMembersState(d);}
+      } else {
+        setters[k](d);
+      }
       setTimeout(()=>{skipSave.current=false;},200);
     }));
     Promise.all(keys.map(k=>loadFromFirestore(k))).then(results=>{
-      results.forEach((d,i)=>{ if(d!==null){ skipSave.current=true; setters[keys[i]](d); } });
+      results.forEach((d,i)=>{ if(d!==null){
+        skipSave.current=true;
+        if(keys[i]==="members"){
+          try{
+            const savedPhotos=JSON.parse(localStorage.getItem("memberPhotos")||"{}");
+            const withPhotos=(d||[]).map(m=>savedPhotos[m.id]?{...m,photoUrl:savedPhotos[m.id]}:m);
+            setMembersState(withPhotos);
+          }catch(e){setMembersState(d);}
+        } else {
+          setters[keys[i]](d);
+        }
+      }});
       setTimeout(()=>{skipSave.current=false; setDbReady(true);},300);
     });
     return ()=>unsubs.forEach(u=>u&&u());
@@ -401,7 +425,23 @@ function App() {
     await saveToFirestore(key,data);
     setSaving(false);
   };
-  const setMembers=d=>{setMembersState(d);saveKey("members",d);};
+  const setMembers=d=>{
+    setMembersState(d);
+    // photoUrl은 Firestore 1MB 제한 초과 방지 위해 제외하고 저장
+    // photoUrl은 localStorage에 별도 보관
+    try {
+      const photos={};
+      const lean=d.map(m=>{
+        if(m.photoUrl){photos[m.id]=m.photoUrl;}
+        const {photoUrl,...rest}=m;
+        return rest;
+      });
+      if(Object.keys(photos).length>0){
+        localStorage.setItem("memberPhotos",JSON.stringify({...JSON.parse(localStorage.getItem("memberPhotos")||"{}"), ...photos}));
+      }
+      saveKey("members",lean);
+    } catch(e){ saveKey("members",d); }
+  };
   const setFees=d=>{setFeesState(d);saveKey("fees",d);};
   const setFeeYears=d=>{setFeeYearsState(d);saveKey("feeYears",d);};
   const setYearLabels=d=>{setYearLabelsState(d);saveKey("yearLabels",d);};
@@ -427,6 +467,7 @@ function App() {
     {key:"home",icon:"🏠",label:"홈"},
     {key:"members",icon:"👥",label:"회원관리"},
     {key:"fees",icon:"💰",label:"회비납부"},
+    {key:"entry",icon:"🎫",label:"가입비"},
     {key:"bank",icon:"🏦",label:"통장내역"},
     {key:"meetings",icon:"📋",label:"회의록"},
     {key:"recovery",icon:"📊",label:"목표금액"},
@@ -497,7 +538,8 @@ function App() {
       <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 16px"}}>
         {page==="home"     && <HomePage members={members} transactions={transactions} meetings={meetings} recoveryTotal={recoveryTotal} recoveryTarget={recoveryTarget} recoveryPct={recoveryPct} projects={projects} setPage={setPage} setSelectedProject={setSelectedProject} isAdmin={isAdmin}/>}
         {page==="members"  && <MembersPage members={members} setMembers={isAdmin?setMembers:null} fees={fees} setFees={isAdmin?setFees:null} feeYears={feeYears} isAdmin={isAdmin}/>}
-        {page==="fees"     && <FeesPage fees={fees} setFees={isAdmin?setFees:null} feeYears={feeYears} setFeeYears={isAdmin?setFeeYears:null} yearLabels={yearLabels} setYearLabels={isAdmin?setYearLabels:null} transactions={transactions} setTransactions={isAdmin?setTransactions:null} members={members} isAdmin={isAdmin}/>}
+        {page==="fees"     && <FeesPage fees={fees} setFees={isAdmin?setFees:null} feeYears={feeYears} setFeeYears={isAdmin?setFeeYears:null} yearLabels={yearLabels} setYearLabels={isAdmin?setYearLabels:null} transactions={transactions} setTransactions={isAdmin?setTransactions:null} members={members} setMembers={isAdmin?setMembers:null} isAdmin={isAdmin}/>}
+        {page==="entry"    && <EntryPage fees={fees} setFees={isAdmin?setFees:null} members={members} setMembers={isAdmin?setMembers:null} isAdmin={isAdmin}/>}
         {page==="bank"     && <BankPage transactions={transactions} setTransactions={isAdmin?setTransactions:null} isAdmin={isAdmin}/>}
         {page==="meetings" && <MeetingsPage meetings={meetings} setMeetings={isAdmin?setMeetings:null} members={members} isAdmin={isAdmin}/>}
         {page==="recovery" && <RecoveryPage projects={projects} setProjects={isAdmin?setProjects:null} recoveryTarget={recoveryTarget} setRecoveryTarget={isAdmin?setRecoveryTarget:null} selectedProject={selectedProject} setSelectedProject={setSelectedProject} isAdmin={isAdmin}/>}
@@ -601,18 +643,60 @@ function HomePage({members,transactions,meetings,recoveryTotal,recoveryTarget,re
 }
 
 // ── 회원관리 ──
-function MemberModal({editing, form, setForm, onSave, onClose}) {
+function MemberModal({editing, form, setForm, onSave, onClose, photoUploading, onPhotoChange}) {
   const fields = ["한국화","서양화","서예","공예","수채화","기타"];
+  const [showAddrSearch,setShowAddrSearch]=useState(false);
+  const [addrQuery,setAddrQuery]=useState("");
+  const [addrResults,setAddrResults]=useState([]);
+  const [addrLoading,setAddrLoading]=useState(false);
+  const searchAddr=async()=>{
+    if(!addrQuery.trim()) return;
+    setAddrLoading(true);
+    setAddrResults([]);
+    try {
+      // 행정안전부 도로명주소 API (인증키 불필요 - 공개 테스트키)
+      const key="devU01TX0FVVEgyMDI1MDcwMzE3MTIwMTExNTY4NjQ=";
+      const url=`https://business.juso.go.kr/addrlink/addrLinkApi.do?confmKey=${key}&currentPage=1&countPerPage=10&keyword=${encodeURIComponent(addrQuery)}&resultType=json`;
+      const res=await fetch(url);
+      const json=await res.json();
+      const list=json?.results?.juso||[];
+      setAddrResults(list);
+      if(list.length===0) setAddrResults([{roadAddr:"검색 결과 없음",zipNo:"",jibunAddr:""}]);
+    } catch(e) {
+      setAddrResults([{roadAddr:"검색 실패: "+e.message,zipNo:"",jibunAddr:""}]);
+    }
+    setAddrLoading(false);
+  };
+  const selectAddr=(item)=>{
+    if(!item.zipNo) return;
+    setForm(f=>({...f,zip:item.zipNo,address:item.roadAddr||item.jibunAddr}));
+    setShowAddrSearch(false);
+    setAddrQuery("");
+    setAddrResults([]);
+  };
   return (
     <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16,boxSizing:"border-box"}}
       onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div style={{background:"#fff",borderRadius:16,padding:24,width:"100%",maxWidth:500,boxShadow:"0 20px 60px rgba(0,0,0,.3)",maxHeight:"90vh",overflowY:"auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+      <div style={{background:"#fff",borderRadius:16,padding:24,width:"100%",maxWidth:520,boxShadow:"0 20px 60px rgba(0,0,0,.3)",maxHeight:"92vh",overflowY:"auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
           <div style={{fontWeight:700,fontSize:16,color:"#2d6a9f"}}>{editing?"✏️ 회원 수정":"➕ 신규 회원 등록"}</div>
           <button onClick={onClose} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#aaa",lineHeight:1}}>✕</button>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          {[["name","이름"],["phone","연락처"],["zip","우편번호"],["birth","생년월일"],["joined","가입일"]].map(([k,l])=>(
+        <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16,padding:12,background:"#f8f9fa",borderRadius:10,border:"1px solid #eee"}}>
+          <div style={{width:68,height:88,borderRadius:6,overflow:"hidden",background:"#e8e8e8",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",border:"2px dashed #ccc"}}>
+            {form.photoUrl?<img src={form.photoUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:26,color:"#bbb"}}>👤</span>}
+          </div>
+          <div>
+            <div style={{fontSize:11,color:"#888",marginBottom:6}}>증명사진 (JPG/PNG)</div>
+            <label style={{background:"#2d6a9f",color:"#fff",borderRadius:6,padding:"6px 14px",cursor:"pointer",fontSize:12,fontWeight:600,display:"inline-block"}}>
+              {photoUploading?"⏳ 업로드 중...":"📷 사진 선택"}
+              <input type="file" accept="image/*" onChange={onPhotoChange} style={{display:"none"}} disabled={photoUploading}/>
+            </label>
+            {form.photoUrl&&<button onClick={()=>setForm(f=>({...f,photoUrl:""}))} style={{marginLeft:8,background:"#fde8e8",color:"#c0392b",border:"none",borderRadius:6,padding:"6px 10px",cursor:"pointer",fontSize:11}}>✕ 삭제</button>}
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+          {[["name","이름"],["phone","연락처"]].map(([k,l])=>(
             <div key={k}>
               <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>{l}</label>
               <input value={form[k]||""} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))}
@@ -620,15 +704,25 @@ function MemberModal({editing, form, setForm, onSave, onClose}) {
             </div>
           ))}
           <div>
+            <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>생년월일</label>
+            <input type="date" value={form.birth||""} onChange={e=>setForm(f=>({...f,birth:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13,boxSizing:"border-box"}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>가입일</label>
+            <input type="date" value={form.joined||new Date().toISOString().slice(0,10)} onChange={e=>setForm(f=>({...f,joined:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13,boxSizing:"border-box"}}/>
+          </div>
+          <div>
             <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>성별</label>
-            <select value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}
+            <select value={form.gender||"여"} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}
               style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13}}>
               <option>여</option><option>남</option>
             </select>
           </div>
           <div>
             <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>분야</label>
-            <select value={form.field} onChange={e=>setForm(f=>({...f,field:e.target.value}))}
+            <select value={form.field||"한국화"} onChange={e=>setForm(f=>({...f,field:e.target.value}))}
               style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13}}>
               {fields.map(f=><option key={f}>{f}</option>)}
             </select>
@@ -639,13 +733,24 @@ function MemberModal({editing, form, setForm, onSave, onClose}) {
               style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13,boxSizing:"border-box"}}/>
           </div>
         </div>
-        <div style={{marginTop:12}}>
-          <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>주소</label>
-          <input value={form.address||""} onChange={e=>setForm(f=>({...f,address:e.target.value}))}
+        <div style={{marginBottom:10}}>
+          <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:4}}>우편번호 / 주소</label>
+          <div style={{display:"flex",gap:8,marginBottom:6,alignItems:"center"}}>
+            <input value={form.zip||""} onChange={e=>setForm(f=>({...f,zip:e.target.value}))} placeholder="우편번호 5자리"
+              maxLength={5}
+              style={{width:110,border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13,boxSizing:"border-box"}}/>
+            <a href="https://www.juso.go.kr/openIndexPage.do" target="_blank"
+              style={{background:"#27ae60",color:"#fff",borderRadius:7,padding:"8px 14px",cursor:"pointer",fontSize:12,fontWeight:700,whiteSpace:"nowrap",textDecoration:"none",display:"inline-block"}}>
+              🔍 우편번호 조회
+            </a>
+          </div>
+          <input value={form.address||""} onChange={e=>setForm(f=>({...f,address:e.target.value}))} placeholder="도로명 주소 직접 입력 (예: 충남 부여군 부여읍 사비로 33)"
+            style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13,boxSizing:"border-box",marginBottom:6}}/>
+          <input value={form.address2||""} onChange={e=>setForm(f=>({...f,address2:e.target.value}))} placeholder="상세주소 (동·호수 등)"
             style={{width:"100%",border:"1.5px solid #e0e0e0",borderRadius:7,padding:"8px 10px",fontSize:13,boxSizing:"border-box"}}/>
         </div>
-        <div style={{display:"flex",gap:8,marginTop:18}}>
-          <button onClick={onSave} style={{flex:1,background:"linear-gradient(135deg,#2d6a9f,#4a90c4)",color:"#fff",border:"none",borderRadius:8,padding:"11px",cursor:"pointer",fontWeight:700,fontSize:14}}>💾 저장</button>
+        <div style={{display:"flex",gap:8,marginTop:14}}>
+          <button onClick={onSave} disabled={photoUploading} style={{flex:1,background:"linear-gradient(135deg,#2d6a9f,#4a90c4)",color:"#fff",border:"none",borderRadius:8,padding:"11px",cursor:"pointer",fontWeight:700,fontSize:14,opacity:photoUploading?0.6:1}}>💾 저장</button>
           <button onClick={onClose} style={{background:"#f0f0f0",border:"none",borderRadius:8,padding:"11px 20px",cursor:"pointer",fontSize:13}}>취소</button>
         </div>
       </div>
@@ -654,6 +759,7 @@ function MemberModal({editing, form, setForm, onSave, onClose}) {
 }
 
 function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
+  const [photoUploading,setPhotoUploading]=useState(false);
   const [search,setSearch]=useState("");
   const [filterField,setFilterField]=useState("");
   const [filterGender,setFilterGender]=useState("");
@@ -672,6 +778,33 @@ function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
            (!q||m.name.includes(q)||(m.address||"").includes(q)||(m.phone||"").includes(q))&&
            (!filterField||m.field===filterField)&&(!filterGender||m.gender===filterGender)&&(!filterPos||m.position===filterPos);
   }).sort((a,b)=>a.name.localeCompare(b.name,"ko"));
+
+  const handlePhotoChange=(e)=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    setPhotoUploading(true);
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      const img=new Image();
+      img.onload=()=>{
+        // canvas로 증명사진 크기로 리사이즈 (최대 200x260)
+        const maxW=300, maxH=380;
+        let w=img.width, h=img.height;
+        const ratio=Math.min(maxW/w, maxH/h);
+        w=Math.round(w*ratio); h=Math.round(h*ratio);
+        const canvas=document.createElement("canvas");
+        canvas.width=w; canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        const base64=canvas.toDataURL("image/jpeg",0.82);
+        setForm(f=>({...f,photoUrl:base64}));
+        setPhotoUploading(false);
+      };
+      img.onerror=()=>{alert("이미지를 읽을 수 없습니다.");setPhotoUploading(false);};
+      img.src=ev.target.result;
+    };
+    reader.onerror=()=>{alert("파일 읽기 실패");setPhotoUploading(false);};
+    reader.readAsDataURL(file);
+  };
 
   const saveForm=()=>{
     if(!form.name.trim())return;
@@ -702,12 +835,10 @@ function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
   };
 
   const toggleActive=(id,name,isActive)=>{
-    if(!window.confirm(isActive?`"${name}" 회원을 비활성으로 변경할까요?`:`"${name}" 회원을 다시 활성으로 변경할까요?`))return;
     setMembers(members.map(m=>m.id===id?{...m,active:!isActive}:m));
   };
 
   const deleteMember=(id,name)=>{
-    if(!window.confirm(`"${name}" 회원을 삭제할까요?\n회비 납부 내역도 함께 삭제됩니다.`))return;
     if(!setMembers){alert("🔒 관리자만 삭제할 수 있습니다.");return;}
     setMembers(members.filter(m=>m.id!==id));
     if(fees&&setFees) setFees(fees.filter(f=>f.memberId!==id));
@@ -719,7 +850,7 @@ function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
     downloadExcel([{name:"회원명단",data:[header,...rows]}],`부여미협_회원명단_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
-  const closeModal=()=>{setShowForm(false);setEditing(null);setForm({name:"",gender:"여",zip:"",address:"",phone:"",field:"한국화",position:"",birth:"",joined:"",active:true});};
+  const closeModal=()=>{setShowForm(false);setEditing(null);setForm({name:"",gender:"여",zip:"",address:"",phone:"",field:"한국화",position:"",birth:"",joined:"",active:true,photoUrl:"",address2:""});};
 
   return (
     <div>
@@ -730,6 +861,8 @@ function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
           setForm={setForm}
           onSave={saveForm}
           onClose={closeModal}
+          photoUploading={photoUploading}
+          onPhotoChange={handlePhotoChange}
         />
       )}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -749,7 +882,7 @@ function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <ExcelBtn onClick={downloadMembers} label="회원명단 다운로드"/>
-          {isAdmin&&<button onClick={()=>{setEditing(null);setForm({name:"",gender:"여",zip:"",address:"",phone:"",field:"한국화",position:"",birth:"",joined:"",active:true});setShowForm(true);}} style={{background:"#2d6a9f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontSize:13,fontWeight:600}}>+ 회원 등록</button>}
+          {isAdmin&&<button onClick={()=>{setEditing(null);setForm({name:"",gender:"여",zip:"",address:"",phone:"",field:"한국화",position:"",birth:"",joined:"",active:true,photoUrl:"",address2:""});setShowForm(true);}} style={{background:"#2d6a9f",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",cursor:"pointer",fontSize:13,fontWeight:600}}>+ 회원 등록</button>}
         </div>
       </div>
       <div style={{background:"#fff",borderRadius:10,padding:14,marginBottom:14,display:"flex",gap:10,flexWrap:"wrap",boxShadow:"0 1px 4px rgba(0,0,0,.06)"}}>
@@ -770,20 +903,27 @@ function MembersPage({members,setMembers,fees,setFees,feeYears,isAdmin}) {
             <th style={{padding:"10px 8px",width:36,minWidth:36,position:"sticky",left:0,zIndex:4,background:"#f8f9fa",textAlign:"center"}}></th>
             {["이름","성별","분야","직위","연락처","주소","가입일",""].map((h,i)=>(
               <th key={i} style={{padding:"10px 12px",textAlign:"left",color:"#666",fontWeight:600,whiteSpace:"nowrap",
-                ...(i===0?{position:"sticky",left:58,zIndex:4,background:"#f8f9fa"}:{}),
+                ...(i===0?{position:"sticky",left:36,zIndex:4,background:"#f8f9fa"}:{}),
                 ...(i===7?{position:"sticky",right:0,zIndex:4,background:"#f8f9fa"}:{})}}>{h}</th>
             ))}
           </tr></thead>
           <tbody>{filtered.map((m,i)=>(
             <tr key={m.id} style={{borderBottom:"1px solid #f5f5f5",background:i%2===0?"#fff":"#fafafa",opacity:m.active===false?0.6:1}}>
               <td style={{padding:"4px 8px",position:"sticky",left:0,zIndex:1,background:i%2===0?"#fff":"#fafafa",textAlign:"center",width:36,minWidth:36,borderRight:"1px solid #f0f0f0"}}>
-                <button onClick={()=>setMembers(members.map(x=>x.id===m.id?{...x,active:x.active===false?true:false}:x))}
+                <button onClick={()=>{const updated=members.map(x=>x.id===m.id?{...x,active:x.active===false?true:false}:x);if(setMembers)setMembers(updated);}}
                   title={m.active===false?"활성화":"비활성으로 변경"}
                   style={{width:22,height:22,borderRadius:4,border:m.active===false?"2px solid #ccc":"2px solid #2d6a9f",background:m.active===false?"#f5f5f5":"#2d6a9f",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,flexShrink:0}}>
                   {m.active!==false&&<span style={{color:"#fff",fontSize:12,lineHeight:1}}>✓</span>}
                 </button>
               </td>
-              <td style={{padding:"8px 12px",fontWeight:600,position:"sticky",left:58,zIndex:1,background:i%2===0?"#fff":"#fafafa",minWidth:70,borderRight:"1px solid #e8e8e8",color:m.active===false?"#bbb":"#222",textDecoration:m.active===false?"line-through":"none"}}>{m.name}</td>
+              <td style={{padding:"6px 12px",fontWeight:600,position:"sticky",left:36,zIndex:1,background:i%2===0?"#fff":"#fafafa",minWidth:100,borderRight:"1px solid #e8e8e8",color:m.active===false?"#bbb":"#222",textDecoration:m.active===false?"line-through":"none"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  {m.photoUrl
+                    ?<img src={m.photoUrl} alt="" style={{width:60,height:75,objectFit:"cover",borderRadius:4,border:"1px solid #e0e0e0",flexShrink:0}}/>
+                    :<div style={{width:60,height:75,background:"#f0f0f0",borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:20,color:"#ccc"}}>👤</div>}
+                  <span style={{fontSize:15,fontWeight:700}}>{m.name}</span>
+                </div>
+              </td>
               <td style={{padding:"8px 12px",color:m.gender==="남"?"#4f86c6":"#e07b54",minWidth:50}}>{m.gender||"-"}</td>
               <td style={{padding:"8px 12px",minWidth:80}}>{m.field&&<span style={{background:fieldColors[m.field]+"22",color:fieldColors[m.field],padding:"2px 8px",borderRadius:20,fontSize:11,fontWeight:600}}>{m.field}</span>}</td>
               <td style={{padding:"8px 12px",color:"#666",minWidth:70}}>{m.position||"-"}</td>
@@ -815,24 +955,6 @@ function FeeEditModal({member, data, setData, yearOnlyKeys, yearLabels, onSave, 
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
           <div style={{fontWeight:700,fontSize:16,color:"#2d6a9f"}}>💰 {member.name} 회비 수정</div>
           <button onClick={onClose} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#aaa",lineHeight:1}}>✕</button>
-        </div>
-        {/* 가입비 */}
-        <div style={{background:"#fdf5ff",borderRadius:10,padding:14,marginBottom:14,border:"1px solid #e8d0f8"}}>
-          <div style={{fontWeight:700,color:"#8e44ad",marginBottom:10,fontSize:13}}>🎫 가입비</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <div>
-              <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>금액 (원)</label>
-              <input type="number" value={data.entry||0}
-                onChange={e=>setData(d=>({...d,entry:parseInt(e.target.value)||0}))}
-                style={{width:"100%",border:"1.5px solid #c080e0",borderRadius:7,padding:"9px 10px",fontSize:14,boxSizing:"border-box"}}/>
-            </div>
-            <div>
-              <label style={{fontSize:11,color:"#888",fontWeight:600,display:"block",marginBottom:3}}>납부일</label>
-              <input type="date" value={data.entry_date||""}
-                onChange={e=>setData(d=>({...d,entry_date:e.target.value}))}
-                style={{width:"100%",border:"1.5px solid #c080e0",borderRadius:7,padding:"9px 10px",fontSize:14,boxSizing:"border-box"}}/>
-            </div>
-          </div>
         </div>
         {/* 연도별 회비 */}
         <div style={{background:"#f0f7ff",borderRadius:10,padding:14,border:"1px solid #c8d8f0"}}>
@@ -869,12 +991,13 @@ function FeeEditModal({member, data, setData, yearOnlyKeys, yearLabels, onSave, 
   );
 }
 
-function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,transactions,setTransactions,members,isAdmin}) {
+function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,transactions,setTransactions,members,setMembers,isAdmin}) {
   const [search,setSearch]=useState("");
   const [showAddYear,setShowAddYear]=useState(false);
   const [newYear,setNewYear]=useState("");
   const [editMember,setEditMember]=useState(null);
   const [editData,setEditData]=useState({});
+  const [feeTab,setFeeTab]=useState("active");
 
   const yearOnlyKeys=useMemo(()=>
     feeYears.filter(y=>y!=="entry").sort((a,b)=>b.localeCompare(a))
@@ -883,11 +1006,13 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
   const filtered=useMemo(()=>fees
     .filter(f=>{
       const member=(members||[]).find(m=>m.id===f.memberId||m.name===f.name);
-      if(member&&member.active===false) return false;
+      const active=!member||member.active!==false;
+      if(feeTab==="active"&&!active) return false;
+      if(feeTab==="inactive"&&active) return false;
       return !search||f.name.includes(search);
     })
     .sort((a,b)=>a.name.localeCompare(b.name,"ko"))
-  ,[fees,search,members]);
+  ,[fees,search,members,feeTab]);
 
   const yearTotals=useMemo(()=>yearOnlyKeys.reduce((acc,y)=>{
     acc[y]=fees.reduce((s,f)=>s+(f[y]||0),0); return acc;
@@ -897,7 +1022,7 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
   },{}),[fees,yearOnlyKeys]);
   const entryTotal=useMemo(()=>fees.reduce((s,f)=>s+(f.entry||0),0),[fees]);
   const grandTotal=useMemo(()=>filtered.reduce((s,r)=>
-    s+yearOnlyKeys.reduce((a,y)=>a+(r[y]||0),0)+(r.entry||0)
+    s+yearOnlyKeys.reduce((a,y)=>a+(r[y]||0),0)
   ,0),[filtered,yearOnlyKeys]);
 
   const addYear=()=>{
@@ -910,13 +1035,15 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
     setNewYear("");setShowAddYear(false);
   };
   const removeYear=(key)=>{
-    if(!window.confirm(`"${yearLabels[key]}" 연도를 삭제할까요?`))return;
     setFeeYears(feeYears.filter(y=>y!==key));
     const nl={...yearLabels};delete nl[key];setYearLabels(nl);
   };
 
   const openEdit=(row)=>{setEditMember(row);setEditData({...row});};
   const closeEdit=()=>{setEditMember(null);};
+  const deleteFee=(row)=>{
+    if(setFees) setFees(fees.filter(f=>f.memberId!==row.memberId));
+  };
 
   const saveEdit=()=>{
     const oldRow=fees.find(f=>f.memberId===editMember.memberId)||{};
@@ -976,7 +1103,17 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
       />
       {/* 헤더 */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
-        <h2 style={{margin:0,fontSize:18,fontWeight:700}}>💰 회원별 회비 납부 현황</h2>
+        <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <h2 style={{margin:0,fontSize:18,fontWeight:700}}>💰 회원별 회비 납부 현황</h2>
+          <div style={{display:"flex",gap:4}}>
+            <button onClick={()=>setFeeTab("active")} style={{background:feeTab==="active"?"#2d6a9f":"#f0f0f0",color:feeTab==="active"?"#fff":"#666",border:"none",borderRadius:20,padding:"4px 12px",cursor:"pointer",fontSize:12,fontWeight:600}}>
+              활성 {fees.filter(f=>{const m=(members||[]).find(x=>x.id===f.memberId||x.name===f.name);return !m||m.active!==false;}).length}명
+            </button>
+            <button onClick={()=>setFeeTab("inactive")} style={{background:feeTab==="inactive"?"#e74c3c":"#f0f0f0",color:feeTab==="inactive"?"#fff":"#666",border:"none",borderRadius:20,padding:"4px 12px",cursor:"pointer",fontSize:12,fontWeight:600}}>
+              비활성 {fees.filter(f=>{const m=(members||[]).find(x=>x.id===f.memberId||x.name===f.name);return m&&m.active===false;}).length}명
+            </button>
+          </div>
+        </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="이름 검색"
             style={{border:"1px solid #e0e0e0",borderRadius:7,padding:"7px 12px",fontSize:13,width:120}}/>
@@ -998,10 +1135,21 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
           <button onClick={()=>{setShowAddYear(false);setNewYear("");}} style={{background:"#f0f0f0",border:"none",borderRadius:6,padding:"7px 12px",cursor:"pointer"}}>취소</button>
         </div>
       )}
+      {/* 합계 요약 바 */}
+      <div style={{background:"linear-gradient(135deg,#1a3a5c,#2d6a9f)",borderRadius:10,padding:"10px 16px",marginBottom:8,display:"flex",flexWrap:"wrap",gap:12,alignItems:"center"}}>
+        <span style={{color:"#fff",fontWeight:700,fontSize:13}}>📊 합계</span>
+        {yearOnlyKeys.map((y,idx)=>(
+          <span key={y} style={{background:"rgba(255,255,255,.15)",color:idx===0?"#ffe88a":"#b8d4f8",borderRadius:8,padding:"4px 10px",fontSize:12,fontWeight:600}}>
+            {yearLabels[y]}: {(yearTotals[y]||0).toLocaleString()}원
+          </span>
+        ))}
+        <span style={{background:"rgba(255,220,100,.25)",color:"#ffe88a",borderRadius:8,padding:"4px 10px",fontSize:13,fontWeight:700,marginLeft:"auto"}}>
+          총계: {grandTotal.toLocaleString()}원
+        </span>
+      </div>
       {/* 안내 */}
       <div style={{fontSize:11,marginBottom:6,display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
         <span style={{background:"#f0f4ff",color:"#2d6a9f",borderRadius:20,padding:"2px 9px"}}>총 {filtered.length}명</span>
-        <span style={{background:"#f3e8ff",color:"#8e44ad",borderRadius:20,padding:"2px 9px"}}>가입비 {fees.filter(f=>f.entry>0).length}명 · {entryTotal.toLocaleString()}원</span>
         {isAdmin&&<span style={{color:"#aaa"}}>· 수정 버튼 클릭 시 팝업창에서 입력</span>}
       </div>
       {/* 테이블 */}
@@ -1013,8 +1161,8 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
         <table style={{borderCollapse:"collapse",fontSize:12.5,whiteSpace:"nowrap"}}>
           <thead>
             <tr style={{background:"#1a3a5c"}}>
-              <th style={{position:"sticky",left:0,zIndex:4,padding:"10px 14px",textAlign:"left",color:"#fff",fontWeight:700,background:"#1a3a5c",minWidth:70,borderRight:"1px solid #2d5a8c"}}>성명</th>
-              <th colSpan={2} style={{padding:"8px 10px",textAlign:"center",color:"#f3c8ff",fontWeight:700,background:"#3a1f5c",borderRight:"2px solid #5c3a8c",minWidth:180}}>🎫 가입비</th>
+              <th style={{position:"sticky",left:0,zIndex:4,padding:"10px 8px",textAlign:"center",color:"#fff",fontWeight:700,background:"#1a3a5c",width:36,minWidth:36,borderRight:"1px solid #2d5a8c"}}></th>
+              <th style={{position:"sticky",left:36,zIndex:4,padding:"10px 14px",textAlign:"left",color:"#fff",fontWeight:700,background:"#1a3a5c",minWidth:70,borderRight:"1px solid #2d5a8c"}}>성명</th>
               {yearOnlyKeys.map((y,idx)=>(
                 <th key={y} colSpan={2} style={{padding:"8px 14px",textAlign:"center",color:idx===0?"#ffe88a":"#b8d4f8",fontWeight:700,background:idx===0?"#1e4a2c":"#1a3a5c",borderRight:"2px solid #2d5a8c",minWidth:200}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
@@ -1028,9 +1176,8 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
               <th style={{position:"sticky",right:0,zIndex:4,padding:"8px 14px",textAlign:"right",color:"#ffe88a",fontWeight:700,background:"#0f2a4c",minWidth:140}}>소계</th>
             </tr>
             <tr style={{background:"#f0f4f8",borderBottom:"2px solid #d0daea"}}>
-              <th style={{position:"sticky",left:0,zIndex:4,padding:"7px 14px",background:"#f0f4f8",borderRight:"1px solid #d8e4f0"}}></th>
-              <th style={{padding:"7px 10px",textAlign:"right",color:"#8e44ad",fontWeight:600,background:"#f8f0ff",fontSize:11,minWidth:80,borderRight:"1px solid #e0d0f0"}}>금액</th>
-              <th style={{padding:"7px 10px",textAlign:"center",color:"#8e44ad",fontWeight:600,background:"#f8f0ff",fontSize:11,minWidth:100,borderRight:"2px solid #c8a8e0"}}>납부일</th>
+              <th style={{position:"sticky",left:0,zIndex:4,padding:"7px 8px",background:"#f0f4f8",width:36,minWidth:36,borderRight:"1px solid #d8e4f0"}}></th>
+              <th style={{position:"sticky",left:36,zIndex:4,padding:"7px 14px",background:"#f0f4f8",borderRight:"1px solid #d8e4f0"}}></th>
               {yearOnlyKeys.map((y,idx)=>(
                 <React.Fragment key={y}>
                   <th style={{padding:"7px 10px",textAlign:"right",color:idx===0?"#1a6b3c":"#555",fontWeight:600,background:idx===0?"#edfaf3":"#f8f9fa",fontSize:11,minWidth:90,borderRight:"1px solid #e0e8f0"}}>금액</th>
@@ -1043,16 +1190,22 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
           <tbody>
             {filtered.map((row,i)=>{
               const bg=i%2?"#fafafa":"#fff";
-              const sub=yearOnlyKeys.reduce((s,y)=>s+(row[y]||0),0)+(row.entry||0);
+              const sub=yearOnlyKeys.reduce((s,y)=>s+(row[y]||0),0);
               return(
                 <tr key={row.memberId} style={{borderBottom:"1px solid #f0f0f0",background:bg}}>
-                  <td style={{position:"sticky",left:0,zIndex:2,padding:"8px 14px",fontWeight:700,background:bg,borderRight:"1px solid #e8e8e8",fontSize:13}}>{row.name}</td>
-                  <td style={{padding:"7px 10px",textAlign:"right",background:row.entry>0?"#fdf5ff":bg,borderRight:"1px solid #ede0f5",minWidth:80}}>
-                    <span style={{color:row.entry>0?"#8e44ad":"#ddd",fontWeight:row.entry>0?700:400,fontSize:12}}>{row.entry>0?(row.entry).toLocaleString():"-"}</span>
+                  <td style={{position:"sticky",left:0,zIndex:2,padding:"4px 8px",background:bg,textAlign:"center",width:36,minWidth:36,borderRight:"1px solid #f0f0f0"}}>
+                    {isAdmin&&(()=>{
+                      const member=(members||[]).find(m=>m.id===row.memberId||m.name===row.name);
+                      const isAct=!member||member.active!==false;
+                      return <button
+                        onClick={()=>{if(member&&setMembers){setMembers((members||[]).map(m=>m.id===member.id?{...m,active:!isAct}:m));}}}
+                        title={isAct?"비활성으로 변경":"활성화"}
+                        style={{width:22,height:22,borderRadius:4,border:isAct?"2px solid #2d6a9f":"2px solid #ccc",background:isAct?"#2d6a9f":"#f5f5f5",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>
+                        {isAct&&<span style={{color:"#fff",fontSize:12,lineHeight:1}}>✓</span>}
+                      </button>;
+                    })()}
                   </td>
-                  <td style={{padding:"7px 8px",textAlign:"center",background:row.entry>0?"#fdf5ff":bg,borderRight:"2px solid #c8a0e0",minWidth:100}}>
-                    <span style={{fontSize:11,color:row.entry_date?"#555":"#ddd"}}>{row.entry_date||"-"}</span>
-                  </td>
+                  <td style={{position:"sticky",left:36,zIndex:2,padding:"8px 14px",fontWeight:700,background:bg,borderRight:"1px solid #e8e8e8",fontSize:13}}>{row.name}</td>
                   {yearOnlyKeys.map((y,idx)=>(
                     <React.Fragment key={y}>
                       <td style={{padding:"7px 10px",textAlign:"right",background:row[y]>0&&idx===0?"#f0fdf5":bg,borderRight:"1px solid #eee",minWidth:90}}>
@@ -1066,16 +1219,18 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
                   <td style={{position:"sticky",right:0,zIndex:2,padding:"6px 12px",background:i%2?"#f2f6fc":"#f8faff",boxShadow:"-3px 0 6px rgba(0,0,0,.08)",minWidth:140}}>
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
                       <span style={{fontWeight:700,color:"#2d6a9f",fontSize:13}}>{sub.toLocaleString()}</span>
-                      {isAdmin&&<button onClick={()=>openEdit(row)} style={{background:"#e8f0fe",color:"#2d6a9f",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap",flexShrink:0}}>✏️ 수정</button>}
+                      {isAdmin&&<>
+                        <button onClick={()=>openEdit(row)} style={{background:"#e8f0fe",color:"#2d6a9f",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap",flexShrink:0}}>✏️ 수정</button>
+                        <button onClick={()=>deleteFee(row)} style={{background:"#fde8e8",color:"#c0392b",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap",flexShrink:0}}>🗑️ 삭제</button>
+                      </>}
                     </div>
                   </td>
                 </tr>
               );
             })}
             <tr style={{background:"#e8eef7",borderTop:"2px solid #b8cce8",fontWeight:700}}>
-              <td style={{position:"sticky",left:0,zIndex:2,padding:"10px 14px",color:"#1a3a5c",background:"#e8eef7",fontSize:13}}>합계</td>
-              <td style={{padding:"10px 10px",textAlign:"right",color:"#8e44ad",background:"#f0e8f8"}}>{entryTotal.toLocaleString()}</td>
-              <td style={{padding:"10px 8px",background:"#f0e8f8",borderRight:"2px solid #c8a0e0"}}></td>
+              <td style={{position:"sticky",left:0,zIndex:2,padding:"10px 8px",background:"#e8eef7",width:36,minWidth:36}}></td>
+              <td style={{position:"sticky",left:36,zIndex:2,padding:"10px 14px",color:"#1a3a5c",background:"#e8eef7",fontSize:13}}>합계</td>
               {yearOnlyKeys.map((y,idx)=>(
                 <React.Fragment key={y}>
                   <td style={{padding:"10px 10px",textAlign:"right",color:idx===0?"#1a7a3c":"#2d6a9f",fontWeight:700,background:idx===0?"#e0f8ea":"#e8eef7"}}>{(yearTotals[y]||0).toLocaleString()}</td>
@@ -1085,6 +1240,162 @@ function FeesPage({fees,setFees,feeYears,setFeeYears,yearLabels,setYearLabels,tr
               <td style={{position:"sticky",right:0,zIndex:2,padding:"10px 12px",textAlign:"right",color:"#1a3a5c",background:"#d8e5f5",fontSize:13,fontWeight:700,boxShadow:"-3px 0 6px rgba(0,0,0,.08)",minWidth:140}}>{grandTotal.toLocaleString()}</td>
             </tr>
           </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 가입비 납부 현황 ──
+function EntryPage({fees,setFees,members,setMembers,isAdmin}) {
+  const [search,setSearch]=useState("");
+  const [feeTab,setFeeTab]=useState("active");
+  const [confirmOpt,setConfirmOpt]=useState(null);
+  const [editRow,setEditRow]=useState(null);
+  const [editAmt,setEditAmt]=useState("");
+  const [editDate,setEditDate]=useState("");
+
+  const filtered=useMemo(()=>fees.filter(f=>{
+    const member=(members||[]).find(m=>m.id===f.memberId||m.name===f.name);
+    const active=!member||member.active!==false;
+    if(feeTab==="active"&&!active) return false;
+    if(feeTab==="inactive"&&active) return false;
+    return !search||f.name.includes(search);
+  }).sort((a,b)=>a.name.localeCompare(b.name,"ko")),[fees,search,members,feeTab]);
+
+  const paidCount=filtered.filter(f=>f.entry>0).length;
+  const unpaidCount=filtered.filter(f=>!f.entry).length;
+  const entryTotal=filtered.reduce((s,f)=>s+(f.entry||0),0);
+
+  return (
+    <div style={{background:"#fff",borderRadius:12,padding:20,boxShadow:"0 2px 8px rgba(0,0,0,.08)"}}>
+      {confirmOpt&&<ConfirmModal message={confirmOpt.message} onConfirm={confirmOpt.onConfirm} onCancel={()=>setConfirmOpt(null)}/>}
+      {editRow&&(
+        <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.5)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={e=>{if(e.target===e.currentTarget)setEditRow(null);}}>
+          <div style={{background:"#fff",borderRadius:14,padding:24,width:"100%",maxWidth:360,boxShadow:"0 8px 32px rgba(0,0,0,.2)"}}>
+            <div style={{fontWeight:700,fontSize:16,color:"#8e44ad",marginBottom:16}}>🎫 {editRow.name} 가입비 수정</div>
+            <div style={{marginBottom:12}}>
+              <label style={{fontSize:12,color:"#888",fontWeight:600,display:"block",marginBottom:4}}>가입비 금액 (원)</label>
+              <input type="number" value={editAmt} onChange={e=>setEditAmt(e.target.value)}
+                style={{width:"100%",border:"1.5px solid #c080e0",borderRadius:8,padding:"9px 12px",fontSize:15,boxSizing:"border-box"}} placeholder="예) 30000"/>
+            </div>
+            <div style={{marginBottom:20}}>
+              <label style={{fontSize:12,color:"#888",fontWeight:600,display:"block",marginBottom:4}}>납부일</label>
+              <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)}
+                style={{width:"100%",border:"1.5px solid #c080e0",borderRadius:8,padding:"9px 12px",fontSize:15,boxSizing:"border-box"}}/>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>{if(setFees)setFees(fees.map(f=>f.memberId===editRow.memberId?{...f,entry:parseInt(editAmt)||0,entry_date:editDate}:f));setEditRow(null);}}
+                style={{flex:1,background:"#8e44ad",color:"#fff",border:"none",borderRadius:8,padding:"11px",cursor:"pointer",fontWeight:700,fontSize:14}}>💾 저장</button>
+              <button onClick={()=>setEditRow(null)} style={{background:"#f0f0f0",border:"none",borderRadius:8,padding:"11px 16px",cursor:"pointer",fontSize:13}}>취소</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 헤더 */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <h2 style={{margin:0,fontSize:18,fontWeight:700}}>🎫 가입비 납부 현황</h2>
+          <div style={{display:"flex",gap:4}}>
+            <button onClick={()=>setFeeTab("active")} style={{background:feeTab==="active"?"#8e44ad":"#f0f0f0",color:feeTab==="active"?"#fff":"#666",border:"none",borderRadius:20,padding:"4px 12px",cursor:"pointer",fontSize:12,fontWeight:600}}>
+              활성 {fees.filter(f=>{const m=(members||[]).find(x=>x.id===f.memberId||x.name===f.name);return !m||m.active!==false;}).length}명
+            </button>
+            <button onClick={()=>setFeeTab("inactive")} style={{background:feeTab==="inactive"?"#e74c3c":"#f0f0f0",color:feeTab==="inactive"?"#fff":"#666",border:"none",borderRadius:20,padding:"4px 12px",cursor:"pointer",fontSize:12,fontWeight:600}}>
+              비활성 {fees.filter(f=>{const m=(members||[]).find(x=>x.id===f.memberId||x.name===f.name);return m&&m.active===false;}).length}명
+            </button>
+          </div>
+        </div>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="이름 검색"
+          style={{border:"1px solid #e0e0e0",borderRadius:7,padding:"7px 12px",fontSize:13,width:120}}/>
+      </div>
+
+      {/* 요약 카드 */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+        {[
+          {label:"납부 완료",value:paidCount+"명",color:"#8e44ad",bg:"#f8f0ff"},
+          {label:"미납",value:unpaidCount+"명",color:"#e74c3c",bg:"#fff0f0"},
+          {label:"납부 총액",value:entryTotal.toLocaleString()+"원",color:"#2d6a9f",bg:"#f0f4ff"},
+        ].map((c,i)=>(
+          <div key={i} style={{background:c.bg,borderRadius:10,padding:"12px 16px",textAlign:"center"}}>
+            <div style={{fontSize:11,color:"#888",marginBottom:4}}>{c.label}</div>
+            <div style={{fontSize:16,fontWeight:700,color:c.color}}>{c.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 테이블 */}
+      <div style={{overflowX:"auto",borderRadius:8,border:"1px solid #e8e8e8"}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+          <thead>
+            <tr style={{background:"#3a1f5c"}}>
+              <th style={{padding:"10px 8px",textAlign:"center",color:"#fff",width:36,minWidth:36}}></th>
+              <th style={{padding:"10px 14px",textAlign:"left",color:"#f3c8ff",fontWeight:700}}>성명</th>
+              <th style={{padding:"10px 14px",textAlign:"center",color:"#f3c8ff",fontWeight:700}}>가입일자</th>
+              <th style={{padding:"10px 14px",textAlign:"center",color:"#f3c8ff",fontWeight:700}}>납부여부</th>
+              <th style={{padding:"10px 14px",textAlign:"right",color:"#f3c8ff",fontWeight:700}}>가입비</th>
+              <th style={{padding:"10px 14px",textAlign:"center",color:"#f3c8ff",fontWeight:700}}>납부일</th>
+              <th style={{padding:"10px 8px",textAlign:"center",color:"#f3c8ff",fontWeight:700,minWidth:120}}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row,i)=>{
+              const bg=i%2?"#fafafa":"#fff";
+              const member=(members||[]).find(m=>m.id===row.memberId||m.name===row.name);
+              const isAct=!member||member.active!==false;
+              return (
+                <tr key={row.memberId} style={{borderBottom:"1px solid #f0f0f0",background:bg}}>
+                  <td style={{padding:"4px 8px",textAlign:"center"}}>
+                    {isAdmin&&<button
+                      onClick={()=>{if(member&&setMembers){setMembers((members||[]).map(m=>m.id===member.id?{...m,active:!isAct}:m));}}}
+                      style={{width:22,height:22,borderRadius:4,border:isAct?"2px solid #8e44ad":"2px solid #ccc",background:isAct?"#8e44ad":"#f5f5f5",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,margin:"0 auto"}}>
+                      {isAct&&<span style={{color:"#fff",fontSize:12,lineHeight:1}}>✓</span>}
+                    </button>}
+                  </td>
+                  <td style={{padding:"8px 14px",fontWeight:700}}>{row.name}</td>
+                  <td style={{padding:"8px 14px",textAlign:"center",color:"#888",fontSize:12}}>{(()=>{const m=(members||[]).find(x=>x.id===row.memberId||x.name===row.name);return m&&m.joined?m.joined:"-";})()}</td>
+                  <td style={{padding:"8px 14px",textAlign:"center"}}>
+                    {row.entry>0
+                      ? <span style={{background:"#f3e8ff",color:"#8e44ad",borderRadius:20,padding:"3px 10px",fontSize:12,fontWeight:600}}>납부완료</span>
+                      : <span style={{background:"#fde8e8",color:"#c0392b",borderRadius:20,padding:"3px 10px",fontSize:12,fontWeight:600}}>미납</span>
+                    }
+                  </td>
+                  <td style={{padding:"8px 14px",textAlign:"right",color:row.entry>0?"#8e44ad":"#ddd",fontWeight:row.entry>0?700:400}}>
+                    {row.entry>0?(row.entry).toLocaleString():"-"}
+                  </td>
+                  <td style={{padding:"8px 14px",textAlign:"center",color:row.entry_date?"#555":"#ddd",fontSize:12}}>
+                    {row.entry_date||"-"}
+                  </td>
+                  <td style={{padding:"6px 10px",textAlign:"center"}}>
+                    {isAdmin&&<div style={{display:"flex",gap:4,justifyContent:"center"}}>
+                      <button onClick={()=>{setEditRow(row);setEditAmt(row.entry?row.entry.toString():"");setEditDate(row.entry_date||new Date().toISOString().slice(0,10));}}
+                        style={{background:"#f3e8ff",color:"#8e44ad",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>✏️ 수정</button>
+                      <button onClick={()=>{
+                        setConfirmOpt({
+                          message:`"${row.name}" 회원과 가입비 내역을 모두 삭제할까요?`,
+                          onConfirm:()=>{
+                            try{
+                              if(setFees) setFees(fees.filter(f=>f.memberId!==row.memberId));
+                              if(typeof setMembers==="function") setMembers((members||[]).filter(m=>m.id!==row.memberId));
+                            }catch(e){console.error(e);}
+                            setConfirmOpt(null);
+                          }
+                        });
+                      }} style={{background:"#fde8e8",color:"#c0392b",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>🗑️ 삭제</button>
+                    </div>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr style={{background:"#f0e8f8",borderTop:"2px solid #c8a0e0",fontWeight:700}}>
+              <td colSpan={3} style={{padding:"10px 14px",color:"#8e44ad",fontSize:13}}>합계</td>
+              <td style={{padding:"10px 14px",textAlign:"center",color:"#8e44ad"}}>{paidCount}명 납부</td>
+              <td style={{padding:"10px 14px",textAlign:"right",color:"#8e44ad",fontSize:14}}>{entryTotal.toLocaleString()}원</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
@@ -1141,7 +1452,6 @@ function BankPage({transactions,setTransactions,isAdmin}) {
   };
 
   const deleteTx=(id)=>{
-    if(!window.confirm("이 내역을 삭제할까요?"))return;
     const updated=transactions.filter(t=>t.id!==id);
     setTransactions(recalcBalances(updated));
   };
@@ -1592,7 +1902,6 @@ function MeetingsPage({meetings,setMeetings,members,isAdmin}) {
   };
 
   const deleteMeeting=(id)=>{
-    if(!window.confirm("이 회의록을 삭제할까요?"))return;
     const m=meetings.find(x=>x.id===id);
     if(m&&m.photos) m.photos.forEach(p=>removePhoto(p,false));
     setMeetings(meetings.filter(x=>x.id!==id));
@@ -1787,6 +2096,8 @@ function RecoveryPage({projects,setProjects,recoveryTarget,setRecoveryTarget,sel
   const [showTxForm,setShowTxForm]=useState(false);
   const [editingTarget,setEditingTarget]=useState(false);
   const [targetInput,setTargetInput]=useState("");
+  const [editingPTarget,setEditingPTarget]=useState(false);
+  const [pTargetInput,setPTargetInput]=useState("");
 
   const recoveryTotal=projects.reduce((sum,p)=>sum+Math.max(p.transactions.reduce((s,t)=>s+t.amount,0),0),0);
   const recoveryPct=Math.min(100,Math.round(recoveryTotal/recoveryTarget*100));
@@ -1852,7 +2163,7 @@ function RecoveryPage({projects,setProjects,recoveryTarget,setRecoveryTarget,sel
             </div>
             {editingTarget?(
               <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12}}>
-                <input type="number" value={targetInput} onChange={e=>setTargetInput(e.target.value)}
+                <input type="number" value={targetInput} onChange={e=>{const v=e.target.value;setTargetInput(v);}}
                   style={{flex:1,border:"2px solid rgba(255,255,255,.6)",borderRadius:8,padding:"8px 12px",fontSize:16,fontWeight:700,background:"rgba(255,255,255,.15)",color:"#fff",outline:"none"}} placeholder="목표금액(원)"/>
                 <button onClick={()=>{const v=parseInt(targetInput);if(v>0){setRecoveryTarget(v);setEditingTarget(false);}}} style={{background:"#f9d342",color:"#333",border:"none",borderRadius:7,padding:"8px 14px",cursor:"pointer",fontWeight:700,fontSize:13}}>저장</button>
                 <button onClick={()=>setEditingTarget(false)} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:7,padding:"8px 12px",cursor:"pointer",color:"#fff",fontSize:13}}>취소</button>
@@ -1895,9 +2206,7 @@ function RecoveryPage({projects,setProjects,recoveryTarget,setRecoveryTarget,sel
                     {isAdmin&&<button onClick={e=>{
                       e.stopPropagation();
                       if(!setProjects){alert("🔒 관리자만 삭제 가능합니다.");return;}
-                      if(window.confirm(`"${p.name}" 사업을 삭제할까요?`))
-                        setProjects(projects.filter(x=>x.id!==p.id));
-                    }} style={{background:"#fde8e8",color:"#c0392b",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11}}>삭제</button>}
+                                              setProjects(projects.filter(x=>x.id!==p.id));}} style={{background:"#fde8e8",color:"#c0392b",border:"none",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:11}}>삭제</button>}
                   </div>
                   <div style={{fontSize:12,color:"#888",marginBottom:10,display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
                     <span>목표: {won(p.target)}</span><span>순수입: {won(net)}</span>
@@ -1919,8 +2228,23 @@ function RecoveryPage({projects,setProjects,recoveryTarget,setRecoveryTarget,sel
       {curProject&&(
         <div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:14}}>
+            <div style={{background:"#fff",borderRadius:10,padding:"14px 18px",boxShadow:"0 1px 4px rgba(0,0,0,.06)",textAlign:"center",position:"relative"}}>
+              <div style={{fontSize:11,color:"#888"}}>목표 금액</div>
+              {editingPTarget?(
+                <div style={{display:"flex",gap:6,marginTop:6,alignItems:"center"}}>
+                  <input type="number" value={pTargetInput} onChange={e=>setPTargetInput(e.target.value)}
+                    style={{flex:1,border:"2px solid #2d6a9f",borderRadius:6,padding:"4px 8px",fontSize:13,width:"100%",boxSizing:"border-box"}} placeholder="목표금액"/>
+                  <button onClick={()=>{const v=parseInt(pTargetInput);if(v>0){setProjects(projects.map(p=>p.id===selectedProject?{...p,target:v}:p));setEditingPTarget(false);}}} style={{background:"#2d6a9f",color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>저장</button>
+                  <button onClick={()=>setEditingPTarget(false)} style={{background:"#f0f0f0",border:"none",borderRadius:6,padding:"4px 6px",cursor:"pointer",fontSize:11}}>✕</button>
+                </div>
+              ):(
+                <div style={{fontSize:18,fontWeight:700,color:"#2d6a9f",marginTop:4}}>
+                  {won(curProject.target)}
+                  {isAdmin&&<button onClick={()=>{setEditingPTarget(true);setPTargetInput(curProject.target.toString());}} style={{marginLeft:6,background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#aaa"}}>✏️</button>}
+                </div>
+              )}
+            </div>
             {[
-              {label:"목표 금액",value:won(curProject.target),color:"#2d6a9f"},
               {label:"총 수입",value:won(curProject.transactions.filter(t=>t.type==="income").reduce((s,t)=>s+t.amount,0)),color:"#27ae60"},
               {label:"총 지출",value:won(curProject.transactions.filter(t=>t.type==="expense").reduce((s,t)=>s+Math.abs(t.amount),0)),color:"#e74c3c"},
             ].map((c,i)=>(
