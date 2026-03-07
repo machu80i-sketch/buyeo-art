@@ -36,12 +36,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  .pc-nav{display:flex !important;}
-  .mobile-nav{display:none !important;}
-  @media(max-width:768px){
-    .pc-nav{display:none !important;}
-    .mobile-nav{display:flex !important;}
-  }
+
   body{font-family:'Noto Sans KR',sans-serif;background:#f0f2f5;min-height:100vh;}
   input,select,textarea,button{font-family:'Noto Sans KR',sans-serif;}
   ::-webkit-scrollbar{width:6px;height:6px;}
@@ -418,6 +413,14 @@ function App() {
   const recoveryTotal=useMemo(()=>projects.reduce((sum,p)=>sum+Math.max(p.transactions.reduce((s,t)=>s+t.amount,0),0),0),[projects]);
   const recoveryPct=Math.min(100,Math.round(recoveryTotal/recoveryTarget*100));
 
+  const [menuOpen,setMenuOpen]=useState(false);
+  const [isMobile,setIsMobile]=useState(()=>window.innerWidth<=768);
+  React.useEffect(()=>{
+    const fn=()=>setIsMobile(window.innerWidth<=768);
+    window.addEventListener('resize',fn);
+    return ()=>window.removeEventListener('resize',fn);
+  },[]);
+
   if(isAdmin===null) return <LoginPage onLogin={setIsAdmin} adminPw={adminPw}/>;
 
   const navItems=[
@@ -428,8 +431,6 @@ function App() {
     {key:"meetings",icon:"📋",label:"회의록"},
     {key:"recovery",icon:"📊",label:"목표금액"},
   ];
-
-  const [menuOpen,setMenuOpen]=useState(false);
 
   return (
     <>
@@ -448,7 +449,7 @@ function App() {
         </div>
 
         {/* PC 메뉴 */}
-        <div className="pc-nav" style={{display:"flex",gap:4,alignItems:"center"}}>
+        <div style={{display:isMobile?"none":"flex",gap:4,alignItems:"center"}}>
           {navItems.map(n=>(
             <button key={n.key} onClick={()=>{setPage(n.key);setSelectedProject(null);}}
               style={{background:page===n.key?"rgba(255,255,255,.25)":"transparent",border:"none",color:"#fff",padding:"6px 10px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:page===n.key?700:400,display:"flex",alignItems:"center",gap:4}}>
@@ -464,15 +465,15 @@ function App() {
         </div>
 
         {/* 모바일 햄버거 버튼 */}
-        <button className="mobile-nav" onClick={()=>setMenuOpen(o=>!o)}
-          style={{background:"rgba(255,255,255,.15)",border:"1px solid rgba(255,255,255,.3)",color:"#fff",width:40,height:40,borderRadius:8,cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <button style={{display:isMobile?"flex":"none"}} onClick={()=>setMenuOpen(o=>!o)}
+          style={{background:"rgba(255,255,255,.15)",border:"1px solid rgba(255,255,255,.3)",color:"#fff",width:40,height:40,borderRadius:8,cursor:"pointer",fontSize:20,alignItems:"center",justifyContent:"center"}}>
           {menuOpen?"✕":"☰"}
         </button>
       </div>
 
       {/* 모바일 드롭다운 메뉴 */}
       {menuOpen&&(
-        <div className="mobile-nav" style={{position:"fixed",top:58,left:0,right:0,background:"linear-gradient(135deg,#1a3a5c,#2d6a9f)",zIndex:199,boxShadow:"0 4px 12px rgba(0,0,0,.3)",padding:"8px 0 12px"}}>
+        <div style={{display:isMobile?"flex":"none",flexDirection:"column",position:"fixed",top:58,left:0,right:0,background:"linear-gradient(135deg,#1a3a5c,#2d6a9f)",zIndex:199,boxShadow:"0 4px 12px rgba(0,0,0,.3)",padding:"8px 0 12px"}}>
           {navItems.map(n=>(
             <button key={n.key} onClick={()=>{setPage(n.key);setSelectedProject(null);setMenuOpen(false);}}
               style={{width:"100%",background:page===n.key?"rgba(255,255,255,.2)":"transparent",border:"none",color:"#fff",padding:"13px 20px",cursor:"pointer",fontSize:15,fontWeight:page===n.key?700:400,display:"flex",alignItems:"center",gap:10,textAlign:"left"}}>
